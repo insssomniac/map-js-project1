@@ -2,13 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>Карта</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
   <link type="text/css" rel="stylesheet" href="./css/main.css">
-  <script src="https://api-maps.yandex.ru/2.1/?apikey=1ac71b67-2522-42e1-ac13-dedd85bfbabb&lang=ru_RU" type="text/javascript"></script>
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=1ac71b67-2522-42e1-ac13-dedd85bfbabb&lang=ru_RU"
+          type="text/javascript"></script>
 </head>
 <body>
 <div id="map" class="map"></div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 <script src="./js/main.js"></script>
+
+<script id="balloon-template" type="text/x-handlebars-template">
+  <div class="balloon-content">
+    {{#if reviews}}
+    <div class="reviews">
+      {{#each reviews}}
+      <div class="reviews__review review">
+        <div class="review__header">
+          <span class="review__name">{{userName}}</span>
+          <span class="review__place-date" data-coords="{{coords}}">{{place}} {{date}}</span>
+        </div>
+        <div class="review__text">{{review}}</div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+    <h1 class="balloon-title">Отзыв:</h1>
+    <form class="form" action="#">
+      <label class="form__block">
+        <input type="text" name="name" placeholder="Укажите ваше имя" class="form__input" required="">
+      </label>
+      <label class="form__block">
+        <input type="text" name="place" placeholder="Укажите место" class="form__input" required="">
+      </label>
+      <label class="form__block">
+        <textarea name="comment" class="form__input form__input--textarea" required=""
+                  placeholder="Оставить отзыв"></textarea>
+      </label>
+      <button type="submit" class="btn btn--orange">Добавить</button>
+    </form>
+  </div>
+</script>
 </html>
