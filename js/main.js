@@ -1,8 +1,9 @@
 let myMap;
+let geoObjects = [];
 
 ymaps.ready(init);
 
-function init(){
+function init() {
     myMap = new ymaps.Map("map", {
         center: [55.76, 37.64],
         zoom: 14
@@ -20,31 +21,81 @@ function init(){
             myMap.balloon.open(coords, {
                 contentBody: balloonBody(0, coords),
             });
-        }
-        else {
+        } else {
             myMap.balloon.close();
         }
     });
 
-    reviews.reviews.forEach((obj) => {
-        addPlacemark(obj.coords);
+    for (let i = 0; i < reviews.reviews.length; i++) {
+        geoObjects[i] = createPlacemark(reviews.reviews[i].coords);
+    }
+
+    let clusterer = new ymaps.Clusterer({
+        groupByCoordinates: false,
+        clusterDisableClickZoom: true,
+        clusterHideIconOnBalloonOpen: false,
+        geoObjectHideIconOnBalloonOpen: false,
+        clusterBalloonContentLayoutWidth: 500,
+        clusterBalloonLeftColumnWidth: 150,
+        clusterBalloonContentLayoutHeight: 500,
     });
+
+    myMap.geoObjects.add(clusterer);
+    clusterer.add(geoObjects);
+
+    document.addEventListener('submit', (e) => {
+        e.preventDefault();
+        let reviews = getReviews();
+
+        const name = e.target.querySelector('#name').value;
+        const place = e.target.querySelector('#place').value;
+        const review = e.target.querySelector('#comment').value;
+        const coords = e.target.querySelector('#submit').getAttribute('data-coords').split(',');
+        const currentDate = new Date();
+        const date = `${currentDate.getDate()}.${currentDate.getMonth()}.${currentDate.getFullYear()}`;
+
+        reviews.reviews.push({
+            userName: name,
+            place: place,
+            review: review,
+            date: date,
+            coords: coords
+        });
+
+        if (!placemarkExists(coords)) {
+            clusterer.add(createPlacemark(coords))
+        }
+
+        localStorage.setItem('reviews', JSON.stringify(reviews));
+        myMap.balloon.close();
+    })
 }
 
-function addPlacemark(coords) {
+function createPlacemark(coords) {
     let placemark = new ymaps.Placemark(coords, {
         balloonContent: balloonBody(placemarkReviewsFilter(coords), coords)
     });
+
+    ymaps.geocode(coords).then((res) => {
+        placemark.properties.set({
+            balloonContentHeader: [
+                res.geoObjects.get(0).getPremise(),
+                res.geoObjects.get(0).getThoroughfare(),
+                res.geoObjects.get(0).getPremiseNumber()
+            ].filter(Boolean).join(', ')
+        })
+    });
+
 
     placemark.events.add('balloonopen', () => {
         const placemarkCoords = placemark.geometry.getCoordinates()
         placemark.properties.set('balloonContent', balloonBody(placemarkReviewsFilter(placemarkCoords), placemarkCoords));
     });
 
-    myMap.geoObjects.add(placemark);
+    return placemark;
 }
 
-function balloonBody (data, coords) {
+function balloonBody(data, coords) {
     const source = document.getElementById("balloon-template").innerHTML;
     const template = Handlebars.compile(source);
 
@@ -80,29 +131,3 @@ function getReviews() {
     return JSON.parse(localStorage.getItem('reviews')) || {"reviews": []};
 }
 
-document.addEventListener('submit', (e) => {
-    e.preventDefault();
-    let reviews = getReviews();
-
-    const name = e.target.querySelector('#name').value;
-    const place = e.target.querySelector('#place').value;
-    const review = e.target.querySelector('#comment').value;
-    const coords = e.target.querySelector('#submit').getAttribute('data-coords').split(',');
-    const currentDate = new Date();
-    const date = `${currentDate.getDate()}.${currentDate.getMonth()}.${currentDate.getFullYear()}`;
-
-    reviews.reviews.push({
-        userName: name,
-        place: place,
-        review: review,
-        date: date,
-        coords: coords
-    });
-
-    if (!placemarkExists(coords)) {
-        addPlacemark(coords);
-    }
-
-    localStorage.setItem('reviews', JSON.stringify(reviews));
-    myMap.balloon.close();
-})
