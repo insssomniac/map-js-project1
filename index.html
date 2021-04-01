@@ -16,13 +16,13 @@
 
 <script id="balloon-template" type="text/x-handlebars-template">
   <div class="balloon-content">
-    {{#if reviews}}
+    {{#if data.reviews}}
     <div class="reviews">
-      {{#each reviews}}
-      <div class="reviews__review review">
+      {{#each data.reviews}}
+      <div class="reviews__review review" data-coords="{{coords}}">
         <div class="review__header">
           <span class="review__name">{{userName}}</span>
-          <span class="review__place-date" data-coords="{{coords}}">{{place}} {{date}}</span>
+          <span class="review__place-date">{{place}} {{date}}</span>
         </div>
         <div class="review__text">{{review}}</div>
       </div>
@@ -30,18 +30,18 @@
     </div>
     {{/if}}
     <h1 class="balloon-title">Отзыв:</h1>
-    <form class="form" action="#">
+    <form class="form" id="review-form">
       <label class="form__block">
-        <input type="text" name="name" placeholder="Укажите ваше имя" class="form__input" required="">
+        <input type="text" id="name" name="name" placeholder="Укажите ваше имя" class="form__input" required="">
       </label>
       <label class="form__block">
-        <input type="text" name="place" placeholder="Укажите место" class="form__input" required="">
+        <input type="text" id="place" name="place" placeholder="Укажите место" class="form__input" required="">
       </label>
       <label class="form__block">
-        <textarea name="comment" class="form__input form__input--textarea" required=""
+        <textarea name="comment" id="comment" class="form__input form__input--textarea" required=""
                   placeholder="Оставить отзыв"></textarea>
       </label>
-      <button type="submit" class="btn btn--orange">Добавить</button>
+      <button type="submit" id="submit" class="btn btn--orange submit-button" data-coords="{{coords}}">Добавить</button>
     </form>
   </div>
 </script>

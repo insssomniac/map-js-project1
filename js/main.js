@@ -1,4 +1,7 @@
+let myMap;
+
 ymaps.ready(init);
+
 function init(){
     myMap = new ymaps.Map("map", {
         center: [55.76, 37.64],
@@ -9,12 +12,13 @@ function init(){
         searchControlProvider: 'yandex#search'
     });
 
+    let reviews = getReviews();
+
     myMap.events.add('click', function (e) {
         if (!myMap.balloon.isOpen()) {
-            var coords = e.get('coords');
+            const coords = e.get('coords');
             myMap.balloon.open(coords, {
-                contentBody: balloonBody(reviews),
-                contentFooter: coords
+                contentBody: balloonBody(0, coords),
             });
         }
         else {
@@ -23,49 +27,82 @@ function init(){
     });
 
     reviews.reviews.forEach((obj) => {
-        let placemark = new ymaps.Placemark(obj.coords);
-
-        myMap.geoObjects.add(placemark);
+        addPlacemark(obj.coords);
     });
 }
 
-let reviews = {
-    "reviews": [
-        {
-            userName: "Сергей",
-            place: "Кафе",
-            review: "Очень хорошее место!",
-            date: "12.01.2020",
-            coords: [55.764331253399725, 37.622104301452616]
-        },
-        {
-            userName: "Дима",
-            place: "Пятерочка",
-            review: "Вкусное шампанское!",
-            date: "31.12.2020",
-            coords: [55.76316145474593, 37.62568992344673]
-        },
-        {
-            userName: "Виталий",
-            place: "ресторан",
-            review: "Хорошо внутри, вкусная еда",
-            date: "25.12.2020",
-            coords: [55.7627017218261, 37.61594814030466]
-        },
-        {
-            userName: "Елена",
-            place: "ресторан",
-            review: "Норм",
-            date: "25.12.2020",
-            coords: [55.76224198346906, 37.64040988652047]
-        }
-    ]
+function addPlacemark(coords) {
+    let placemark = new ymaps.Placemark(coords, {
+        balloonContent: balloonBody(placemarkReviewsFilter(coords), coords)
+    });
+
+    placemark.events.add('balloonopen', () => {
+        const placemarkCoords = placemark.geometry.getCoordinates()
+        placemark.properties.set('balloonContent', balloonBody(placemarkReviewsFilter(placemarkCoords), placemarkCoords));
+    });
+
+    myMap.geoObjects.add(placemark);
 }
 
-function balloonBody (data) {
+function balloonBody (data, coords) {
     const source = document.getElementById("balloon-template").innerHTML;
     const template = Handlebars.compile(source);
 
-    return template(data);
+    return template({data: data, coords: coords});
 }
 
+function placemarkReviewsFilter(coordinates) {
+    let reviews = getReviews();
+
+    let placemarkReviews = {
+        "reviews": []
+    };
+
+    let elements = reviews.reviews.filter((item) => {
+        return item.coords.join() === coordinates.join();
+    });
+
+    placemarkReviews.reviews = placemarkReviews.reviews.concat(elements);
+    return placemarkReviews;
+}
+
+function placemarkExists(coordinates) {
+    const reviews = getReviews();
+
+    let elements = reviews.reviews.filter((item) => {
+        return item.coords.join() === coordinates.join();
+    });
+
+    return elements.length > 0;
+}
+
+function getReviews() {
+    return JSON.parse(localStorage.getItem('reviews')) || {"reviews": []};
+}
+
+document.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let reviews = getReviews();
+
+    const name = e.target.querySelector('#name').value;
+    const place = e.target.querySelector('#place').value;
+    const review = e.target.querySelector('#comment').value;
+    const coords = e.target.querySelector('#submit').getAttribute('data-coords').split(',');
+    const currentDate = new Date();
+    const date = `${currentDate.getDate()}.${currentDate.getMonth()}.${currentDate.getFullYear()}`;
+
+    reviews.reviews.push({
+        userName: name,
+        place: place,
+        review: review,
+        date: date,
+        coords: coords
+    });
+
+    if (!placemarkExists(coords)) {
+        addPlacemark(coords);
+    }
+
+    localStorage.setItem('reviews', JSON.stringify(reviews));
+    myMap.balloon.close();
+})
