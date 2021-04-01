@@ -26,8 +26,16 @@ function init() {
         }
     });
 
+    let placemarkCoords = [];
     for (let i = 0; i < reviews.reviews.length; i++) {
-        geoObjects[i] = createPlacemark(reviews.reviews[i].coords);
+        placemarkCoords[i] = reviews.reviews[i].coords.join();
+    }
+
+    const uniqueCoordsSet = new Set(placemarkCoords);
+    const uniqueCoords = [...uniqueCoordsSet];
+
+    for (let i = 0; i < uniqueCoords.length; i++) {
+        geoObjects[i] = createPlacemark(uniqueCoords[i].split(','));
     }
 
     let clusterer = new ymaps.Clusterer({
