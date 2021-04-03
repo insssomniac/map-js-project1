@@ -70,16 +70,15 @@ function init() {
             coords: coords
         });
 
-        if (!placemarkExists(coords)) {
+        const existingPlacemark = findExistingPlacemark(clusterer.getGeoObjects(), coords);
+
+        if (existingPlacemark) {
             localStorage.setItem('reviews', JSON.stringify(reviews));
-            clusterer.add(createPlacemark(coords))
+                clusterer.remove(existingPlacemark);
+                clusterer.add(createPlacemark(coords));
         } else {
             localStorage.setItem('reviews', JSON.stringify(reviews));
-            const placemark = findExistingPlacemark(clusterer.getGeoObjects(), coords)
-            if (placemark) {
-                clusterer.remove(placemark);
-                clusterer.add(createPlacemark(coords))
-            }
+            clusterer.add(createPlacemark(coords));
         }
 
         myMap.balloon.close();
@@ -132,16 +131,6 @@ function placemarkReviewsFilter(coordinates) {
     return placemarkReviews;
 }
 
-function placemarkExists(coordinates) {
-    const reviews = getReviews();
-
-    let elements = reviews.reviews.filter((item) => {
-        return item.coords.join() === coordinates.join();
-    });
-
-    return elements.length > 0;
-}
-
 function getReviews() {
     return JSON.parse(localStorage.getItem('reviews')) || {"reviews": []};
 }
@@ -152,5 +141,7 @@ function findExistingPlacemark (array, coords) {
             return array[i];
         }
     }
+
+    return false;
 }
 
