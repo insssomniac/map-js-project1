@@ -71,10 +71,17 @@ function init() {
         });
 
         if (!placemarkExists(coords)) {
+            localStorage.setItem('reviews', JSON.stringify(reviews));
             clusterer.add(createPlacemark(coords))
+        } else {
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+            const placemark = findExistingPlacemark(clusterer.getGeoObjects(), coords)
+            if (placemark) {
+                clusterer.remove(placemark);
+                clusterer.add(createPlacemark(coords))
+            }
         }
 
-        localStorage.setItem('reviews', JSON.stringify(reviews));
         myMap.balloon.close();
     })
 }
@@ -137,5 +144,13 @@ function placemarkExists(coordinates) {
 
 function getReviews() {
     return JSON.parse(localStorage.getItem('reviews')) || {"reviews": []};
+}
+
+function findExistingPlacemark (array, coords) {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i].geometry._coordinates.join() === coords.join()) {
+            return array[i];
+        }
+    }
 }
 
