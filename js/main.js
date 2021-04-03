@@ -69,15 +69,14 @@ function init() {
             date: date,
             coords: coords
         });
+        
+        localStorage.setItem('reviews', JSON.stringify(reviews));
 
         const existingPlacemark = findExistingPlacemark(clusterer.getGeoObjects(), coords);
-
         if (existingPlacemark) {
-            localStorage.setItem('reviews', JSON.stringify(reviews));
                 clusterer.remove(existingPlacemark);
                 clusterer.add(createPlacemark(coords));
         } else {
-            localStorage.setItem('reviews', JSON.stringify(reviews));
             clusterer.add(createPlacemark(coords));
         }
 
