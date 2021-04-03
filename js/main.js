@@ -69,13 +69,13 @@ function init() {
             date: date,
             coords: coords
         });
-        
+
         localStorage.setItem('reviews', JSON.stringify(reviews));
 
         const existingPlacemark = findExistingPlacemark(clusterer.getGeoObjects(), coords);
         if (existingPlacemark) {
-                clusterer.remove(existingPlacemark);
-                clusterer.add(createPlacemark(coords));
+            clusterer.remove(existingPlacemark);
+            clusterer.add(createPlacemark(coords));
         } else {
             clusterer.add(createPlacemark(coords));
         }
@@ -134,7 +134,7 @@ function getReviews() {
     return JSON.parse(localStorage.getItem('reviews')) || {"reviews": []};
 }
 
-function findExistingPlacemark (array, coords) {
+function findExistingPlacemark(array, coords) {
     for (let i = 0; i < array.length; i++) {
         if (array[i].geometry._coordinates.join() === coords.join()) {
             return array[i];
